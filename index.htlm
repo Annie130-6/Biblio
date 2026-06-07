@@ -1,1 +1,710 @@
 https://claude.ai/public/artifacts/ae53c1bd-c479-4733-8904-04e697accd3b
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ma Bibliothèque">
+<title>Ma Bibliothèque de Recettes</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F5F0;
+    --surface: #FFFFFF;
+    --border: #E8E0D4;
+    --text: #1C1410;
+    --muted: #9A8878;
+    --accent: #B84A1C;
+    --accent-light: #FEF0EB;
+    --accent2: #2C5F3A;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Lato', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
+  
+  /* Header */
+  .header { background: var(--text); color: #F8F5F0; padding: 20px 20px 0; position: sticky; top: 0; z-index: 100; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+  .logo span { color: #D4854A; }
+  .stats { font-size: 11px; color: #9A8878; letter-spacing: 1px; margin-top: 2px; }
+  .add-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 16px; font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+  
+  /* Nav */
+  .nav { display: flex; }
+  .nav-btn { flex: 1; padding: 13px 6px; border: none; background: none; color: #9A8878; font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; text-transform: uppercase; }
+  .nav-btn.active { color: #D4854A; border-bottom-color: #D4854A; }
+
+  /* Search */
+  .section { padding: 20px 16px; }
+  .search-bar { display: flex; align-items: center; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 4px 14px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .search-bar input { flex: 1; border: none; background: transparent; font-family: 'Lato', sans-serif; font-size: 16px; padding: 11px 8px; outline: none; color: var(--text); }
+  .search-bar input::placeholder { color: var(--muted); }
+  .clear-btn { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0 4px; }
+  
+  /* Filter chips */
+  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .chip { flex-shrink: 0; padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; white-space: nowrap; letter-spacing: 0.3px; transition: all 0.15s; }
+  .chip.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+  
+  /* Book filter */
+  .book-filter { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Lato', sans-serif; font-size: 14px; color: var(--text); background: var(--surface); outline: none; margin-bottom: 16px; appearance: none; }
+
+  /* Result cards */
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 0; margin-bottom: 10px; box-shadow: var(--shadow); display: flex; overflow: hidden; cursor: pointer; transition: transform 0.1s; }
+  .result-card:active { transform: scale(0.98); }
+  .result-stripe { width: 5px; flex-shrink: 0; }
+  .result-body { flex: 1; padding: 14px 14px 14px 12px; }
+  .result-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .result-book { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .result-ingredients { font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 5px; }
+  .result-page { text-align: right; padding: 14px 16px 14px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+  .result-page .num { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 900; color: var(--accent); line-height: 1; }
+  .result-page .lbl { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; margin-top: 3px; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 50px 20px; color: var(--muted); line-height: 1.8; }
+  .empty .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty strong { color: var(--text); }
+
+  /* Book cards */
+  .book-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow); }
+  .book-header { display: flex; align-items: center; gap: 14px; padding: 16px; }
+  .book-spine { width: 48px; height: 60px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .book-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .book-author { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .book-isbn { font-size: 10px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.5px; }
+  .book-count { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: white; border-radius: 12px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+  .book-actions { margin-left: auto; display: flex; gap: 8px; }
+  .icon-btn { border: none; background: none; cursor: pointer; font-size: 18px; padding: 4px; color: var(--muted); }
+
+  /* Recipe rows */
+  .recipe-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-top: 1px solid var(--border); }
+  .recipe-name { font-size: 14px; flex: 1; padding-right: 8px; }
+  .recipe-sub { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 2px; }
+  .recipe-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .page-badge { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-light); padding: 3px 10px; border-radius: 20px; }
+  .del-btn { border: none; background: none; cursor: pointer; color: #ccc; font-size: 18px; padding: 0 2px; line-height: 1; }
+  .del-btn:hover { color: #e74c3c; }
+  .show-more { width: 100%; padding: 11px; background: var(--bg); border: none; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* Add recipe form */
+  .add-recipe-form { padding: 16px; border-top: 1px solid var(--border); background: var(--bg); }
+  .add-recipe-form .form-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-input { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Lato', sans-serif; font-size: 14px; color: var(--text); background: var(--surface); outline: none; margin-bottom: 10px; }
+  .form-input:focus { border-color: var(--accent); }
+  .form-row { display: flex; gap: 8px; }
+  .form-row .form-input { flex: 1; margin-bottom: 0; }
+  .form-row select.form-input { flex: 2; }
+  .form-row-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-primary { flex: 1; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 10px; font-family: 'Lato', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-ghost { padding: 12px 16px; background: transparent; color: var(--muted); border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Lato', sans-serif; font-size: 14px; cursor: pointer; }
+  .add-recipe-btn { width: 100%; padding: 12px; background: var(--accent-light); border: none; border-top: 1px solid var(--border); color: var(--accent); font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.3px; }
+
+  /* Add book form */
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .form-card-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+  .form-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+  .color-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .color-dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: border 0.1s; }
+  .color-dot.selected { border-color: var(--text); }
+  .info-box { background: var(--accent-light); border: 1px solid rgba(184,74,28,0.2); border-radius: 12px; padding: 16px; }
+  .info-box-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .info-box p { font-size: 13px; color: var(--text); line-height: 1.7; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; }
+  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+  /* Notif */
+  .notif { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--text); color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; z-index: 999; box-shadow: 0 4px 24px rgba(0,0,0,0.25); white-space: nowrap; max-width: 90vw; animation: slideUp 0.3s ease; }
+  .notif.err { background: #8B2020; }
+  @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
+  /* Result count */
+  .result-count { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const CATS = ["Entrée","Soupe","Plat","Dessert","Pain","Salade","Sauce","Déjeuner","Collation","Autre"];
+const CAT_COLORS = {
+  "Entrée":"#4A90D9","Soupe":"#7B68EE","Plat":"#E8943A","Dessert":"#E87AA0",
+  "Pain":"#A0784A","Salade":"#5BAD6F","Sauce":"#C4A020","Déjeuner":"#20B2AA",
+  "Collation":"#DA70D6","Autre":"#888"
+};
+const BOOK_COLORS = ["#B84A1C","#A0784A","#2C5F3A","#4A6FA5","#6B4FA0","#C45C8A","#B8860B","#2C5F5A","#1C3A1C","#3A1C3A"];
+
+const LE_PAIN_RECIPES = [
+  {id:101,name:"Avant-propos",page:9,ingredients:"",category:"Autre"},
+  {id:102,name:"Au nom du pain",page:10,ingredients:"",category:"Autre"},
+  {id:103,name:"Les principes de panification",page:13,ingredients:"",category:"Autre"},
+  {id:104,name:"Les farines",page:14,ingredients:"farine",category:"Autre"},
+  {id:105,name:"Le choix des ingrédients",page:16,ingredients:"",category:"Autre"},
+  {id:106,name:"Le matériel",page:18,ingredients:"",category:"Autre"},
+  {id:107,name:"Le pétrissage",page:20,ingredients:"",category:"Autre"},
+  {id:108,name:"La fermentation",page:24,ingredients:"levure",category:"Autre"},
+  {id:109,name:"Les deux temps de la fermentation",page:30,ingredients:"levure",category:"Autre"},
+  {id:110,name:"La mise en forme",page:32,ingredients:"",category:"Autre"},
+  {id:111,name:"Le façonnage",page:34,ingredients:"",category:"Autre"},
+  {id:112,name:"Le lamage",page:38,ingredients:"",category:"Autre"},
+  {id:113,name:"La cuisson et la conservation du pain",page:43,ingredients:"",category:"Autre"},
+  {id:114,name:"On apprend de ses erreurs",page:44,ingredients:"",category:"Autre"},
+  {id:115,name:"La boule",page:48,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:116,name:"Le bâtard",page:52,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:117,name:"La baguette",page:55,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:118,name:"La polka",page:56,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:119,name:"L'épi, la ficelle et la tresse",page:58,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:120,name:"La gâche",page:62,ingredients:"farine, beurre, œufs",category:"Pain"},
+  {id:121,name:"Le gros pain",page:64,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:122,name:"Le pain rustique",page:66,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:123,name:"Le pain du premier broyage",page:68,ingredients:"farine de meule, eau, levure, sel",category:"Pain"},
+  {id:124,name:"Le pain à la farine de maïs",page:70,ingredients:"farine de maïs, eau, levure",category:"Pain"},
+  {id:125,name:"Le pain multigrains",page:73,ingredients:"farine, graines, eau, levure",category:"Pain"},
+  {id:126,name:"Le pain de Kamut®",page:74,ingredients:"farine de Kamut, eau, levure, sel",category:"Pain"},
+  {id:127,name:"Le pain complet",page:76,ingredients:"farine complète, eau, levure, sel",category:"Pain"},
+  {id:128,name:"Le pain à la semoule",page:80,ingredients:"semoule, farine, eau, levure",category:"Pain"},
+  {id:129,name:"Le pain de campagne",page:82,ingredients:"farine, eau, levain, sel",category:"Pain"},
+  {id:130,name:"Le pain de son",page:84,ingredients:"farine, son, eau, levure",category:"Pain"},
+  {id:131,name:"Le pain de seigle",page:86,ingredients:"farine de seigle, eau, levain, sel",category:"Pain"},
+  {id:132,name:"Le pain de méteil",page:88,ingredients:"farine de seigle, farine de blé, eau, levain",category:"Pain"},
+  {id:133,name:"Le pain sans gluten à la farine de maïs",page:92,ingredients:"farine de maïs, eau, levure",category:"Pain"},
+  {id:134,name:"Le pain sans gluten à la farine de châtaigne",page:96,ingredients:"farine de châtaigne, eau, levure",category:"Pain"},
+  {id:135,name:"La baguette bio",page:102,ingredients:"farine bio, eau, levain, sel",category:"Pain"},
+  {id:136,name:"Le pain bio à la farine de meule et aux raisins",page:106,ingredients:"farine de meule, raisins, levain",category:"Pain"},
+  {id:137,name:"Le pain bio T 80",page:109,ingredients:"farine T80, eau, levain, sel",category:"Pain"},
+  {id:138,name:"Le pain bio au sarrasin",page:112,ingredients:"sarrasin, farine, levain",category:"Pain"},
+  {id:139,name:"Le pain bio à l'épeautre",page:114,ingredients:"épeautre, eau, levain, sel",category:"Pain"},
+  {id:140,name:"Le pain bio à l'engrain (ou petit épeautre)",page:116,ingredients:"engrain, eau, levain, sel",category:"Pain"},
+  {id:141,name:"Pain bio à la farine T 150",page:118,ingredients:"farine T150, eau, levain, sel",category:"Pain"},
+  {id:142,name:"La tourte de meule bio",page:120,ingredients:"farine de meule, eau, levain, sel",category:"Pain"},
+  {id:143,name:"Le pain aux noisettes et au beurre",page:124,ingredients:"farine, noisettes, beurre, levure",category:"Pain"},
+  {id:144,name:"Le pain au gorgonzola et aux noix",page:126,ingredients:"farine, gorgonzola, noix, levure",category:"Pain"},
+  {id:145,name:"Le pain au thé vert et à l'orange",page:129,ingredients:"farine, thé vert, orange, levure",category:"Pain"},
+  {id:146,name:"Le pain à l'orange",page:132,ingredients:"farine, orange, levure",category:"Pain"},
+  {id:147,name:"Le pain aux figues",page:135,ingredients:"farine, figues, levure",category:"Pain"},
+  {id:148,name:"Le pain au miel",page:136,ingredients:"farine, miel, levure",category:"Pain"},
+  {id:149,name:"Le pain aux noix et au beurre",page:138,ingredients:"farine, noix, beurre, levure",category:"Pain"},
+  {id:150,name:"Le pain au curcuma",page:142,ingredients:"farine, curcuma, levure",category:"Pain"},
+  {id:151,name:"Le pain aux 12 fruits secs",page:144,ingredients:"farine, fruits secs, levure",category:"Pain"},
+  {id:152,name:"Le pain au sésame",page:148,ingredients:"farine, sésame, levure",category:"Pain"},
+  {id:153,name:"Le pain à l'encre de seiche",page:150,ingredients:"farine, encre de seiche, levure",category:"Pain"},
+  {id:154,name:"La ciabatta nature",page:154,ingredients:"farine, huile d'olive, levure, sel",category:"Pain"},
+  {id:155,name:"La ciabatta aux graines mélangées",page:158,ingredients:"farine, graines, huile d'olive, levure",category:"Pain"},
+  {id:156,name:"La ciabatta au sarrasin",page:160,ingredients:"farine, sarrasin, huile d'olive, levure",category:"Pain"},
+  {id:157,name:"La ciabatta aux graines de courge",page:163,ingredients:"farine, graines de courge, huile d'olive",category:"Pain"},
+  {id:158,name:"Le pain au basilic",page:166,ingredients:"farine, basilic, huile d'olive, levure",category:"Pain"},
+  {id:159,name:"Le pain aux tomates séchées",page:169,ingredients:"farine, tomates séchées, huile d'olive",category:"Pain"},
+  {id:160,name:"La fougasse au chèvre noir",page:170,ingredients:"farine, chèvre, huile d'olive, levure",category:"Pain"},
+  {id:161,name:"La fougasse aux olives noires et vertes",page:172,ingredients:"farine, olives, huile d'olive, levure",category:"Pain"},
+  {id:162,name:"La fougasse aux lardons",page:176,ingredients:"farine, lardons, huile d'olive, levure",category:"Pain"},
+  {id:163,name:"La pizza",page:178,ingredients:"farine, tomates, mozzarella, huile d'olive",category:"Plat"},
+  {id:164,name:"Le petit pain au lait",page:184,ingredients:"farine, lait, beurre, sucre, levure",category:"Pain"},
+  {id:165,name:"Le pain viennois",page:186,ingredients:"farine, lait, beurre, sucre, levure",category:"Pain"},
+  {id:166,name:"Le pain au sucre",page:190,ingredients:"farine, sucre, beurre, levure",category:"Pain"},
+  {id:167,name:"La brioche",page:192,ingredients:"farine, beurre, œufs, lait, sucre",category:"Dessert"},
+  {id:168,name:"Le pain brioché",page:196,ingredients:"farine, beurre, œufs, lait, sucre",category:"Pain"},
+  {id:169,name:"Le benoîton aux raisins",page:199,ingredients:"farine, raisins, beurre, sucre",category:"Dessert"},
+  {id:170,name:"Le croissant",page:200,ingredients:"farine, beurre, lait, levure",category:"Dessert"},
+  {id:171,name:"Le pain au chocolat",page:204,ingredients:"pâte feuilletée, chocolat",category:"Dessert"},
+  {id:172,name:"Le petit pain à la vanille",page:208,ingredients:"farine, vanille, beurre, sucre",category:"Dessert"},
+  {id:173,name:"Le pain de mie",page:210,ingredients:"farine, lait, beurre, sucre, levure",category:"Pain"},
+  {id:174,name:"Le pain aux raisins",page:214,ingredients:"farine, raisins, beurre, sucre, levure",category:"Dessert"},
+  {id:175,name:"Le petit pain au pavot",page:220,ingredients:"farine, pavot, levure",category:"Pain"},
+  {id:176,name:"Le petit pain aux lardons et aux noix de pécan",page:222,ingredients:"farine, lardons, noix de pécan",category:"Pain"},
+  {id:177,name:"Le pistolet",page:226,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:178,name:"Le petit pain de Kamut® aux algues",page:228,ingredients:"farine de Kamut, algues, levure",category:"Pain"},
+  {id:179,name:"Le petit pain aux noisettes et au chocolat",page:230,ingredients:"farine, noisettes, chocolat, levure",category:"Pain"},
+  {id:180,name:"Le petit pain énergétique aux raisins et aux noix",page:234,ingredients:"farine, raisins, noix, levure",category:"Pain"},
+  {id:181,name:"Le gressin",page:236,ingredients:"farine, huile d'olive, levure, sel",category:"Pain"},
+  {id:182,name:"La tabatière (Jura)",page:242,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:183,name:"Le pain fendu (Berry)",page:246,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:184,name:"La marguerite (Ardèche)",page:248,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:185,name:"Le portemanteau (Toulouse)",page:250,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:186,name:"Le pain tordu (Gers)",page:254,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:187,name:"Le vivarais",page:256,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:188,name:"La couronne (Lyon)",page:259,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:189,name:"Le pain d'Aix",page:262,ingredients:"farine, eau, levure, sel",category:"Pain"},
+  {id:190,name:"La focaccia au romarin (Italie)",page:267,ingredients:"farine, romarin, huile d'olive, levure",category:"Pain"},
+  {id:191,name:"Le pain macatia (La Réunion)",page:270,ingredients:"farine, lait de coco, levure",category:"Pain"},
+  {id:192,name:"L'ekmek (Turquie)",page:272,ingredients:"farine, sésame, levure",category:"Pain"},
+  {id:193,name:"Le pumpernickel (Allemagne)",page:274,ingredients:"seigle, levain, mélasse",category:"Pain"},
+  {id:194,name:"La broa (Portugal)",page:278,ingredients:"farine de maïs, farine, levure",category:"Pain"},
+  {id:195,name:"Le bagel (Canada et États-Unis)",page:280,ingredients:"farine, malt, levure, sel",category:"Pain"},
+  {id:196,name:"Le bun (États-Unis)",page:284,ingredients:"farine, lait, beurre, sucre, levure",category:"Pain"},
+  {id:197,name:"Le pain vaudois (Suisse)",page:286,ingredients:"farine, eau, levure, sel",category:"Pain"},
+];
+
+const JOE_BEEF_RECIPES = [
+  {id:301,name:"Achigan en écorce de bouleau",page:6,ingredients:"achigan, écorce de bouleau",category:"Plat"},
+  {id:302,name:"Pêches Cardinal",page:9,ingredients:"pêches, framboise, crème",category:"Dessert"},
+  {id:303,name:"Ragoût de lapin au porter",page:18,ingredients:"lapin, bière porter, légumes",category:"Plat"},
+  {id:304,name:"Pot-au-feu d'hiver",page:21,ingredients:"bœuf, légumes, ail",category:"Plat"},
+  {id:305,name:"Pot-au-feu d'été",page:22,ingredients:"légumes d'été, volaille",category:"Plat"},
+  {id:306,name:"Consommé VGE",page:25,ingredients:"bouillon, légumes, truffe",category:"Soupe"},
+  {id:307,name:"Bouillon de chaga",page:27,ingredients:"chaga, eau",category:"Soupe"},
+  {id:308,name:"Cuisses de grenouille croustillantes",page:28,ingredients:"grenouilles, beurre, ail",category:"Entrée"},
+  {id:309,name:"Pascade (Dutch Baby)",page:35,ingredients:"farine, œufs, lait, beurre",category:"Déjeuner"},
+  {id:310,name:"Pascade — Comté, chanterelles, foie gras et vin jaune",page:36,ingredients:"comté, chanterelles, foie gras, vin jaune",category:"Déjeuner"},
+  {id:311,name:"Pascade — Quark, petits fruits et miel",page:36,ingredients:"quark, petits fruits, miel",category:"Déjeuner"},
+  {id:312,name:"Pascade — Beurre, sirop d'érable et sucre à la cannelle",page:36,ingredients:"beurre, sirop d'érable, cannelle",category:"Déjeuner"},
+  {id:313,name:"Mousse igloo (gelée de lait hivernale)",page:38,ingredients:"lait, gélatine, anis étoilé",category:"Dessert"},
+  {id:314,name:"Rognons de veau à la Monique",page:44,ingredients:"rognons de veau, beurre, moutarde",category:"Plat"},
+  {id:315,name:"Sauce madère vite faite",page:46,ingredients:"madère, fond de veau, beurre",category:"Sauce"},
+  {id:316,name:"Œufs mayonnaise",page:47,ingredients:"œufs, mayonnaise",category:"Entrée"},
+  {id:317,name:"Soupe au sandwich",page:49,ingredients:"pain, légumes, bouillon",category:"Soupe"},
+  {id:318,name:"Brains over Matar — cervelle de veau et cari de pois verts",page:51,ingredients:"cervelle de veau, pois verts, cari",category:"Plat"},
+  {id:319,name:"Canard Stroganov",page:53,ingredients:"canard, crème, champignons",category:"Plat"},
+  {id:320,name:"Soupe au cresson avec quenelles de truite",page:54,ingredients:"cresson, truite, crème",category:"Soupe"},
+  {id:321,name:"Potage télépathique",page:56,ingredients:"légumes, bouillon",category:"Soupe"},
+  {id:322,name:"T-bones minces de bacon de bœuf",page:57,ingredients:"bacon de bœuf",category:"Plat"},
+  {id:323,name:"Beurre de tomate à la marjolaine",page:58,ingredients:"tomates, beurre, marjolaine",category:"Sauce"},
+  {id:324,name:"Beurre de chips all dressed",page:60,ingredients:"chips, beurre",category:"Sauce"},
+  {id:325,name:"Chaga ghee",page:61,ingredients:"chaga, beurre clarifié",category:"Sauce"},
+  {id:326,name:"Volaille du nez à la queue",page:63,ingredients:"volaille entière",category:"Plat"},
+  {id:327,name:"Velouté de poulet aux morilles",page:67,ingredients:"poulet, morilles, crème",category:"Plat"},
+  {id:328,name:"Fricassée de volaille aux écrevisses",page:68,ingredients:"volaille, écrevisses, crème",category:"Plat"},
+  {id:329,name:"Ailerons de poulet farcis",page:71,ingredients:"ailerons de poulet, farce",category:"Plat"},
+  {id:330,name:"Cocktail fruits du jour de John Bil",page:72,ingredients:"fruits frais",category:"Dessert"},
+  {id:331,name:"Croquettes de viande fumée",page:74,ingredients:"viande fumée, chapelure",category:"Entrée"},
+  {id:332,name:"Filet de veau PET (Pierre Elliott Trudeau)",page:77,ingredients:"filet de veau, beurre",category:"Plat"},
+  {id:333,name:"Lapin à la moutarde",page:81,ingredients:"lapin, moutarde, crème",category:"Plat"},
+  {id:334,name:"Pâté printanier aux fruits de mer",page:83,ingredients:"fruits de mer, pâte brisée",category:"Entrée"},
+  {id:335,name:"Jambon et maquereaux persillés",page:87,ingredients:"jambon, maquereaux, persil",category:"Entrée"},
+  {id:336,name:"Saucisses de base",page:89,ingredients:"porc, épices",category:"Plat"},
+  {id:337,name:"Saucisses de homard",page:93,ingredients:"homard, porc, épices",category:"Plat"},
+  {id:338,name:"Saucisses à la salade de egg roll",page:94,ingredients:"porc, légumes, épices",category:"Plat"},
+  {id:339,name:"Tripes à la mode de Caen",page:95,ingredients:"tripes, cidre, ail, carottes",category:"Plat"},
+  {id:340,name:"Steak Ambassadeur",page:101,ingredients:"steak, beurre",category:"Plat"},
+  {id:341,name:"Sauce volaille",page:102,ingredients:"volaille, fond",category:"Sauce"},
+  {id:342,name:"Rondelles de bouillon",page:104,ingredients:"bouillon, gélatine",category:"Autre"},
+  {id:343,name:"Sauce Worcestershire",page:106,ingredients:"ail, anchois, vinaigre, épices",category:"Sauce"},
+  {id:344,name:"Sous-marin d'onglet «spécial A.A.»",page:109,ingredients:"onglet, pain, légumes",category:"Plat"},
+  {id:345,name:"Ris de veau Prince des ténèbres",page:110,ingredients:"ris de veau, beurre, citron",category:"Plat"},
+  {id:346,name:"Hamburgers «Catalina»",page:113,ingredients:"bœuf haché, pain, laitue, tomate",category:"Plat"},
+  {id:347,name:"Chips",page:114,ingredients:"pommes de terre, huile, sel",category:"Collation"},
+  {id:348,name:"Quenelles de truite (ou petits gâteaux)",page:121,ingredients:"truite, crème, œufs",category:"Entrée"},
+  {id:349,name:"Truffes au sésame du Vaucluse",page:124,ingredients:"truffes, sésame",category:"Entrée"},
+  {id:350,name:"Pommes de terre aux algues en sac",page:126,ingredients:"pommes de terre, algues, beurre",category:"Plat"},
+  {id:351,name:"Civet de homard au calvados",page:129,ingredients:"homard, calvados, crème",category:"Plat"},
+  {id:352,name:"Pithiviers de perdrix",page:131,ingredients:"perdrix, pâte feuilletée",category:"Plat"},
+  {id:353,name:"Crêpes vonnassiennes",page:133,ingredients:"pommes de terre, crème, œufs",category:"Plat"},
+  {id:354,name:"Paupiettes de saumon au cerfeuil",page:135,ingredients:"saumon, cerfeuil, crème",category:"Plat"},
+  {id:355,name:"Foie gras au micro-ondes",page:136,ingredients:"foie gras",category:"Entrée"},
+  {id:356,name:"Gâteau renversé aux truffes",page:140,ingredients:"truffes, beurre, farine",category:"Plat"},
+  {id:357,name:"Omelette soufflée au kirsch, compote de griottes",page:142,ingredients:"œufs, kirsch, griottes",category:"Dessert"},
+  {id:358,name:"Bavarois à la Doris",page:145,ingredients:"crème, gélatine, vanille",category:"Dessert"},
+  {id:359,name:"Mousse au chocolat, chantilly aux pralines roses",page:146,ingredients:"chocolat, crème, pralines roses",category:"Dessert"},
+  {id:360,name:"Côtes levées d'agneau et aubergine BBQ",page:155,ingredients:"agneau, aubergine",category:"Plat"},
+  {id:361,name:"Noix fumées",page:157,ingredients:"noix, fumée",category:"Collation"},
+  {id:362,name:"Tartare de bison Buffalo",page:158,ingredients:"bison, câpres, échalotes",category:"Entrée"},
+  {id:363,name:"Beurre de piment fermenté",page:159,ingredients:"piment, beurre",category:"Sauce"},
+  {id:364,name:"Céviche de cheval",page:160,ingredients:"cheval, citron, coriandre",category:"Entrée"},
+  {id:365,name:"Artichauts Bravas",page:163,ingredients:"artichauts, sauce bravas, ail",category:"Entrée"},
+  {id:366,name:"Jalapenos marinés",page:165,ingredients:"jalapenos, vinaigre, ail",category:"Autre"},
+  {id:367,name:"Flanc de cerf à la bière",page:167,ingredients:"cerf, bière, légumes",category:"Plat"},
+  {id:368,name:"Saint-honoré «Beauty's Special»",page:169,ingredients:"pâte choux, crème, caramel",category:"Dessert"},
+  {id:369,name:"Pelmenis au homard",page:173,ingredients:"homard, pâte à ravioli",category:"Plat"},
+  {id:370,name:"Soupe aigre-piquante",page:177,ingredients:"bouillon, vinaigre, piment, ail",category:"Soupe"},
+  {id:371,name:"Galettes Tater Tots",page:178,ingredients:"pommes de terre, farine",category:"Collation"},
+  {id:372,name:"Sticky buns à la courge",page:179,ingredients:"courge, sucre, pâte levée",category:"Dessert"},
+  {id:373,name:"Cari de crabe de Dungeness de Omar",page:181,ingredients:"crabe, cari, lait de coco",category:"Plat"},
+  {id:374,name:"Carbonnade de cous de cerf",page:185,ingredients:"cerf, bière, oignons",category:"Plat"},
+  {id:375,name:"Tarte au chou",page:186,ingredients:"chou, pâte brisée, crème",category:"Plat"},
+  {id:376,name:"Craquelins de seigle et fromage cottage",page:193,ingredients:"seigle, fromage cottage",category:"Collation"},
+  {id:377,name:"Cari de homard de Halifax et pilaf à la moelle",page:195,ingredients:"homard, riz, moelle, cari",category:"Plat"},
+  {id:378,name:"Saucisses FrancForce",page:199,ingredients:"porc, épices santé",category:"Plat"},
+  {id:379,name:"Soupe au chou de régime cinq étoiles",page:201,ingredients:"chou, légumes, bouillon",category:"Soupe"},
+  {id:380,name:"Mmmuffins aux mûres",page:206,ingredients:"mûres, farine, œufs, beurre",category:"Déjeuner"},
+  {id:381,name:"Risotto minute",page:208,ingredients:"riz arborio, bouillon, parmesan",category:"Plat"},
+  {id:382,name:"Barres aux figues",page:211,ingredients:"figues, avoine, miel",category:"Collation"},
+  {id:383,name:"Galettes au sucre de Mammie",page:213,ingredients:"farine, sucre, beurre",category:"Dessert"},
+  {id:384,name:"Ketchup maison",page:214,ingredients:"tomates, vinaigre, sucre, épices",category:"Sauce"},
+  {id:385,name:"Boisson à la noix de coco et à la mousse d'Irlande",page:217,ingredients:"noix de coco, algues",category:"Autre"},
+  {id:386,name:"Frappé vitalité",page:218,ingredients:"fruits, algues, lait",category:"Autre"},
+  {id:387,name:"Limonade aux poires cactus",page:221,ingredients:"poires cactus, citron, sucre",category:"Autre"},
+  {id:388,name:"Cari de tempeh",page:222,ingredients:"tempeh, cari, lait de coco",category:"Plat"},
+  {id:389,name:"Gelées au vin",page:233,ingredients:"vin, gélatine, sucre",category:"Dessert"},
+  {id:390,name:"Bolognaise de mirepoix",page:238,ingredients:"mirepoix, tomates, ail, anchois",category:"Plat"},
+  {id:391,name:"Petits fantômes",page:240,ingredients:"pâte choux, crème, ail",category:"Entrée"},
+  {id:392,name:"Jambon sur ondes courtes",page:241,ingredients:"jambon",category:"Plat"},
+  {id:393,name:"Burnt ends à la bourguignonne",page:244,ingredients:"bœuf, vin rouge, bacon",category:"Plat"},
+  {id:394,name:"Gâteau au fromage à la bette à carde",page:248,ingredients:"fromage, bette à carde",category:"Dessert"},
+  {id:395,name:"Munster Mash — purée de pommes de terre au munster",page:251,ingredients:"pommes de terre, munster, beurre",category:"Plat"},
+  {id:396,name:"Salade composée très française",page:252,ingredients:"laitue, tomates, œufs, anchois",category:"Salade"},
+  {id:397,name:"Betteraves à la cendre, chanterelles marinées",page:254,ingredients:"betteraves, chanterelles",category:"Entrée"},
+  {id:398,name:"Cassoulet vite fait",page:254,ingredients:"haricots, saucisses, canard",category:"Plat"},
+  {id:399,name:"Cornichons",page:254,ingredients:"cornichons, vinaigre, aneth",category:"Autre"},
+  {id:400,name:"Mayonnaise à l'arlésienne",page:254,ingredients:"œufs, huile, câpres, anchois",category:"Sauce"},
+  {id:401,name:"Carottes, câpres, cerfeuil et ciboulette en rémoulade",page:255,ingredients:"carottes, câpres, cerfeuil, ciboulette",category:"Salade"},
+  {id:402,name:"Carré d'agneau fumé à la française",page:256,ingredients:"agneau, canard, boudin, lapin, poulet, veau",category:"Plat"},
+  {id:403,name:"Croissants à la livèche",page:259,ingredients:"pâte feuilletée, livèche",category:"Pain"},
+  {id:404,name:"Gâteau basque au pollen d'abeille, parfait glacé au miel de sarrasin",page:261,ingredients:"amandes, pollen, miel de sarrasin, abricots",category:"Dessert"},
+  {id:405,name:"Natas à la citrouille",page:264,ingredients:"citrouille, crème, œufs, pâte feuilletée",category:"Dessert"},
+  {id:406,name:"Pâtés d'esturgeon à la jamaïcaine",page:275,ingredients:"esturgeon, épices jamaïcaines",category:"Entrée"},
+  {id:407,name:"Soupe au maïs mohawk",page:277,ingredients:"maïs, bouillon",category:"Soupe"},
+  {id:408,name:"Ragoût d'orignal et chips",page:279,ingredients:"orignal, légumes, bière",category:"Plat"},
+  {id:409,name:"Filet de courge",page:281,ingredients:"courge, beurre, épices",category:"Plat"},
+  {id:410,name:"Polentamales",page:283,ingredients:"polenta, maïs, épices",category:"Plat"},
+  {id:411,name:"Pemmican",page:287,ingredients:"viande séchée, gras, baies",category:"Autre"},
+  {id:412,name:"Soupe aux huîtres et au riz sauvage",page:288,ingredients:"huîtres, riz sauvage, crème",category:"Soupe"},
+  {id:413,name:"Margarita de Fred et David",page:293,ingredients:"tequila, citron vert, triple sec",category:"Autre"},
+  {id:414,name:"Grillades de Valleyfield, épices pour grillades",page:295,ingredients:"viande, épices BBQ",category:"Plat"},
+  {id:415,name:"Muffuletta à la Maïté",page:296,ingredients:"pain, charcuterie, olives, fromage",category:"Plat"},
+  {id:416,name:"Bolognaise à la viande fumée",page:301,ingredients:"viande fumée, tomates, pâtes",category:"Plat"},
+  {id:417,name:"Toasts bar-salon",page:302,ingredients:"pain, beurre, garnitures",category:"Entrée"},
+  {id:418,name:"Beignets de maïs à la crème pâtissière au maïs",page:305,ingredients:"maïs, crème pâtissière, farine",category:"Dessert"},
+  {id:419,name:"Bûche du Noël des campeurs",page:307,ingredients:"génoise, crème, chocolat",category:"Dessert"},
+  {id:420,name:"Croquemboule au rhum",page:311,ingredients:"pâte choux, crème, caramel, rhum",category:"Dessert"},
+  {id:421,name:"Financier pour des miettes",page:314,ingredients:"amandes, beurre, blancs d'œufs, sucre",category:"Dessert"},
+];
+
+const DEFAULT_BOOKS = [
+  {id:1, title:"Le Pain", authors:"Larousse", isbn:"9782035973689", color:"#A0784A", recipes: LE_PAIN_RECIPES},
+  {id:2, title:"Joe Beef — Survivre à l'Apocalypse", authors:"Frédéric Morin, David McMillan, Meredith Erickson", isbn:"9782897055868", color:"#1A3A1A", recipes: JOE_BEEF_RECIPES},
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {
+  tab: 'search',
+  books: [],
+  query: '',
+  filterCat: '',
+  filterBook: '',
+  expandedBooks: new Set(),
+  addingToBook: null,
+  editingRecipe: null,
+  showAddBook: false,
+  newBook: {title:'', authors:'', isbn:'', color:'#B84A1C'},
+  newRecipe: {name:'', page:'', ingredients:'', category:''},
+  notif: null,
+  nextId: 1000,
+};
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+function saveData() {
+  try { localStorage.setItem('bibliotheque-v2', JSON.stringify({books: state.books, nextId: state.nextId})); } catch(e) {}
+}
+function loadData() {
+  try {
+    const d = JSON.parse(localStorage.getItem('bibliotheque-v2'));
+    if (d && d.books && d.books.length > 0) {
+      state.books = d.books;
+      state.nextId = d.nextId || 1000;
+      return;
+    }
+  } catch(e) {}
+  state.books = JSON.parse(JSON.stringify(DEFAULT_BOOKS));
+  state.nextId = 2000;
+  saveData();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showNotif(msg, type='ok') {
+  state.notif = {msg, type};
+  render();
+  setTimeout(() => { state.notif = null; render(); }, 2800);
+}
+
+function uid() { return ++state.nextId; }
+
+function totalRecipes() { return state.books.reduce((s,b) => s + b.recipes.length, 0); }
+
+function getResults() {
+  const q = state.query.toLowerCase().trim();
+  if (!q && !state.filterCat && !state.filterBook) return [];
+  return state.books.flatMap(book => {
+    if (state.filterBook && book.id !== parseInt(state.filterBook)) return [];
+    return book.recipes
+      .filter(r => {
+        const mq = !q || r.name.toLowerCase().includes(q) || (r.ingredients||'').toLowerCase().includes(q);
+        const mc = !state.filterCat || r.category === state.filterCat;
+        return mq && mc;
+      })
+      .map(r => ({book, recipe:r}));
+  });
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function addBook() {
+  if (!state.newBook.title.trim()) { showNotif('Entre le titre du livre', 'err'); return; }
+  const book = {id: uid(), title: state.newBook.title.trim(), authors: state.newBook.authors.trim(), isbn: state.newBook.isbn.trim(), color: state.newBook.color, recipes: []};
+  state.books.push(book);
+  state.newBook = {title:'', authors:'', isbn:'', color:'#B84A1C'};
+  state.showAddBook = false;
+  state.tab = 'library';
+  saveData();
+  showNotif('📚 Livre ajouté !');
+}
+
+function deleteBook(id) {
+  if (!confirm('Supprimer ce livre et toutes ses recettes ?')) return;
+  state.books = state.books.filter(b => b.id !== id);
+  saveData();
+  showNotif('Livre supprimé', 'err');
+  render();
+}
+
+function addRecipe(bookId) {
+  if (!state.newRecipe.name.trim() || !state.newRecipe.page) { showNotif('Titre et page requis', 'err'); return; }
+  const recipe = {id: uid(), name: state.newRecipe.name.trim(), page: parseInt(state.newRecipe.page), ingredients: state.newRecipe.ingredients.trim(), category: state.newRecipe.category};
+  const book = state.books.find(b => b.id === bookId);
+  book.recipes.push(recipe);
+  book.recipes.sort((a,b) => a.page - b.page);
+  state.newRecipe = {name:'', page:'', ingredients:'', category:''};
+  state.addingToBook = null;
+  saveData();
+  showNotif('✅ Recette ajoutée !');
+}
+
+function deleteRecipe(bookId, recipeId) {
+  const book = state.books.find(b => b.id === bookId);
+  book.recipes = book.recipes.filter(r => r.id !== recipeId);
+  saveData();
+  showNotif('Recette supprimée', 'err');
+  render();
+}
+
+function saveEdit() {
+  const {bookId, recipe} = state.editingRecipe;
+  const book = state.books.find(b => b.id === bookId);
+  const idx = book.recipes.findIndex(r => r.id === recipe.id);
+  book.recipes[idx] = {...recipe, page: parseInt(recipe.page)};
+  book.recipes.sort((a,b) => a.page - b.page);
+  state.editingRecipe = null;
+  saveData();
+  showNotif('✅ Recette modifiée !');
+}
+
+// ── Tag ───────────────────────────────────────────────────────────────────────
+function tagHTML(cat, small) {
+  const c = CAT_COLORS[cat] || '#888';
+  const sz = small ? '10px' : '11px';
+  return `<span class="tag" style="background:${c}22;color:${c};border:1px solid ${c}44;font-size:${sz}">${cat}</span>`;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const results = getResults();
+  const app = document.getElementById('app');
+
+  app.innerHTML = `
+  ${state.notif ? `<div class="notif${state.notif.type==='err'?' err':''}">${state.notif.msg}</div>` : ''}
+
+  ${state.editingRecipe ? renderModal() : ''}
+
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="logo">Ma <span>Bibliothèque</span></div>
+        <div class="stats">${state.books.length} livre${state.books.length!==1?'s':''} · ${totalRecipes()} recette${totalRecipes()!==1?'s':''}</div>
+      </div>
+      <button class="add-btn" onclick="state.tab='add';render()">+ Ajouter</button>
+    </div>
+    <div class="nav">
+      <button class="nav-btn${state.tab==='search'?' active':''}" onclick="state.tab='search';render()">🔍 Rechercher</button>
+      <button class="nav-btn${state.tab==='library'?' active':''}" onclick="state.tab='library';render()">📚 Livres</button>
+      <button class="nav-btn${state.tab==='add'?' active':''}" onclick="state.tab='add';render()">＋ Nouveau</button>
+    </div>
+  </div>
+
+  ${state.tab==='search' ? renderSearch(results) : ''}
+  ${state.tab==='library' ? renderLibrary() : ''}
+  ${state.tab==='add' ? renderAdd() : ''}
+  `;
+
+  // Re-bind events after render
+  bindEvents();
+}
+
+function renderSearch(results) {
+  const booksWithRecipes = state.books.filter(b => b.recipes.length > 0);
+  return `
+  <div class="section">
+    <div class="search-bar">
+      <span style="font-size:18px;color:var(--muted)">🔍</span>
+      <input id="search-input" type="search" placeholder="Recette ou ingrédient…" value="${escHtml(state.query)}" oninput="state.query=this.value;renderSearch2()">
+      ${state.query ? `<button class="clear-btn" onclick="state.query='';render()">✕</button>` : ''}
+    </div>
+
+    <div class="filter-row">
+      <button class="chip${!state.filterCat && !state.filterBook?' active':''}" onclick="state.filterCat='';state.filterBook='';render()">Tout</button>
+      ${CATS.map(c => `<button class="chip${state.filterCat===c?' active':''}" onclick="state.filterCat=state.filterCat==='${c}'?'':'${c}';render()">${c}</button>`).join('')}
+    </div>
+
+    ${booksWithRecipes.length > 1 ? `
+    <select class="book-filter" onchange="state.filterBook=this.value;render()">
+      <option value="">Tous les livres</option>
+      ${state.books.map(b => `<option value="${b.id}"${state.filterBook==b.id?' selected':''}>${escHtml(b.title)}</option>`).join('')}
+    </select>` : ''}
+
+    ${(state.query || state.filterCat || state.filterBook) ? `
+      ${results.length > 0 ? `<div class="result-count">${results.length} résultat${results.length>1?'s':''}</div>` : ''}
+      ${results.length === 0 ? `<div class="empty"><div class="icon">🔎</div>Aucune recette trouvée pour<br><strong>« ${escHtml(state.query || state.filterCat)} »</strong></div>` : ''}
+      ${results.map(r => `
+        <div class="result-card" onclick="state.editingRecipe={bookId:${r.book.id},recipe:{...${JSON.stringify(r.recipe)}}};render()">
+          <div class="result-stripe" style="background:${r.book.color}"></div>
+          <div class="result-body">
+            <div class="result-name">${escHtml(r.recipe.name)}</div>
+            <div class="result-book">📚 ${escHtml(r.book.title)}</div>
+            ${r.recipe.ingredients ? `<div class="result-ingredients">🧄 ${escHtml(r.recipe.ingredients)}</div>` : ''}
+            ${r.recipe.category ? tagHTML(r.recipe.category, true) : ''}
+          </div>
+          <div class="result-page">
+            <div class="num">${r.recipe.page}</div>
+            <div class="lbl">page</div>
+          </div>
+        </div>`).join('')}
+    ` : `
+      <div class="empty">
+        <div class="icon">📖</div>
+        <div>Tape le nom d'une recette<br>ou d'un ingrédient pour le retrouver<br>instantanément dans tes livres.</div>
+        <div style="margin-top:16px;font-size:13px">${totalRecipes()} recettes dans ${state.books.length} livre${state.books.length!==1?'s':''}.</div>
+      </div>`}
+  </div>`;
+}
+
+function renderSearch2() {
+  // Fast re-render just the results
+  render();
+  // Re-focus the input
+  const inp = document.getElementById('search-input');
+  if (inp) { inp.focus(); const len = inp.value.length; inp.setSelectionRange(len, len); }
+}
+
+function renderLibrary() {
+  if (state.books.length === 0) return `<div class="section"><div class="empty"><div class="icon">📚</div>Aucun livre encore.<br>Appuie sur <strong>+ Ajouter</strong> pour commencer !</div></div>`;
+  return `<div class="section">${state.books.map(book => renderBookCard(book)).join('')}</div>`;
+}
+
+function renderBookCard(book) {
+  const expanded = state.expandedBooks.has(book.id);
+  const shown = expanded ? book.recipes : book.recipes.slice(0, 5);
+  const isAdding = state.addingToBook === book.id;
+  return `
+  <div class="book-card">
+    <div class="book-header" style="border-left:5px solid ${book.color}">
+      <div class="book-spine" style="background:${book.color}22">${getBookEmoji(book.color)}</div>
+      <div style="flex:1">
+        <div class="book-title">${escHtml(book.title)}</div>
+        ${book.authors ? `<div class="book-author">${escHtml(book.authors)}</div>` : ''}
+        ${book.isbn ? `<div class="book-isbn">ISBN ${escHtml(book.isbn)}</div>` : ''}
+        <span class="book-count">${book.recipes.length} recette${book.recipes.length!==1?'s':''}</span>
+      </div>
+      <div class="book-actions">
+        <button class="icon-btn" onclick="deleteBook(${book.id})" title="Supprimer">🗑️</button>
+      </div>
+    </div>
+    ${shown.map((r,i) => `
+      <div class="recipe-row">
+        <div style="flex:1">
+          <div class="recipe-name">${escHtml(r.name)}</div>
+          ${r.ingredients ? `<div class="recipe-sub">${escHtml(r.ingredients)}</div>` : ''}
+          ${r.category ? tagHTML(r.category, true) : ''}
+        </div>
+        <div class="recipe-right">
+          <span class="page-badge">p.${r.page}</span>
+          <button class="icon-btn" style="font-size:14px" onclick="state.editingRecipe={bookId:${book.id},recipe:JSON.parse('${escJS(JSON.stringify(r))}')};render()">✏️</button>
+          <button class="del-btn" onclick="deleteRecipe(${book.id},${r.id})">×</button>
+        </div>
+      </div>`).join('')}
+    ${book.recipes.length > 5 ? `<button class="show-more" onclick="toggleExpand(${book.id})">${expanded?'▲ RÉDUIRE':'▼ VOIR '+( book.recipes.length-5)+' AUTRES'}</button>` : ''}
+    ${isAdding ? `
+      <div class="add-recipe-form">
+        <div class="form-title">Ajouter une recette</div>
+        <input class="form-input" id="nr-name-${book.id}" placeholder="Titre de la recette *" value="${escHtml(state.newRecipe.name)}" oninput="state.newRecipe.name=this.value">
+        <div class="form-row">
+          <input class="form-input" id="nr-page-${book.id}" type="number" placeholder="Page *" value="${state.newRecipe.page}" oninput="state.newRecipe.page=this.value" style="width:90px;flex:none">
+          <select class="form-input" onchange="state.newRecipe.category=this.value">
+            <option value="">Catégorie</option>
+            ${CATS.map(c => `<option value="${c}"${state.newRecipe.category===c?' selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <input class="form-input" placeholder="Ingrédients principaux (optionnel)" value="${escHtml(state.newRecipe.ingredients)}" oninput="state.newRecipe.ingredients=this.value">
+        <div class="form-row-btns">
+          <button class="btn-primary" onclick="addRecipe(${book.id})">Ajouter</button>
+          <button class="btn-ghost" onclick="state.addingToBook=null;state.newRecipe={name:'',page:'',ingredients:'',category:''};render()">✕</button>
+        </div>
+      </div>` : `<button class="add-recipe-btn" onclick="state.addingToBook=${book.id};state.expandedBooks.add(${book.id});render()">+ Ajouter une recette</button>`}
+  </div>`;
+}
+
+function renderAdd() {
+  return `
+  <div class="section">
+    <div class="form-card">
+      <div class="form-card-title">📚 Nouveau livre de recettes</div>
+      <label class="form-label">Titre du livre *</label>
+      <input class="form-input" placeholder="ex: Cuisine du Québec" value="${escHtml(state.newBook.title)}" oninput="state.newBook.title=this.value">
+      <label class="form-label">Auteur(e)</label>
+      <input class="form-input" placeholder="ex: Jehane Benoît" value="${escHtml(state.newBook.authors)}" oninput="state.newBook.authors=this.value">
+      <label class="form-label">ISBN (optionnel)</label>
+      <input class="form-input" placeholder="ex: 9782897055868" value="${escHtml(state.newBook.isbn)}" oninput="state.newBook.isbn=this.value">
+      <label class="form-label">Couleur du livre</label>
+      <div class="color-row">
+        ${BOOK_COLORS.map(c => `<div class="color-dot${state.newBook.color===c?' selected':''}" style="background:${c}" onclick="state.newBook.color='${c}';render()"></div>`).join('')}
+      </div>
+      <button class="btn-primary" onclick="addBook()" style="margin-top:4px">Ajouter le livre</button>
+    </div>
+    <div class="info-box">
+      <div class="info-box-title">💡 Comment ajouter tes recettes rapidement</div>
+      <p>Après avoir créé un livre, va dans <strong>📚 Livres</strong> et appuie sur <strong>+ Ajouter une recette</strong>.<br><br>
+      Tu peux aussi envoyer une photo de ta table des matières à Claude dans le chat — il lira les pages et ajoutera tout !</p>
+    </div>
+  </div>`;
+}
+
+function renderModal() {
+  const {bookId, recipe} = state.editingRecipe;
+  return `
+  <div class="modal-overlay" onclick="if(event.target===this){state.editingRecipe=null;render()}">
+    <div class="modal">
+      <div class="modal-title">✏️ Modifier la recette</div>
+      <label class="form-label">Titre</label>
+      <input class="form-input" value="${escHtml(recipe.name)}" oninput="state.editingRecipe.recipe.name=this.value">
+      <label class="form-label">Page</label>
+      <input class="form-input" type="number" value="${recipe.page}" oninput="state.editingRecipe.recipe.page=this.value">
+      <label class="form-label">Ingrédients principaux</label>
+      <input class="form-input" placeholder="ex: poulet, ail, tomates" value="${escHtml(recipe.ingredients||'')}" oninput="state.editingRecipe.recipe.ingredients=this.value">
+      <label class="form-label">Catégorie</label>
+      <select class="form-input" onchange="state.editingRecipe.recipe.category=this.value">
+        <option value="">— Aucune —</option>
+        ${CATS.map(c => `<option value="${c}"${recipe.category===c?' selected':''}>${c}</option>`).join('')}
+      </select>
+      <button class="btn-primary" onclick="saveEdit()" style="margin-top:8px">Sauvegarder</button>
+      <button class="btn-ghost" onclick="state.editingRecipe=null;render()" style="width:100%;margin-top:8px">Annuler</button>
+    </div>
+  </div>`;
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJS(s) { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+function getBookEmoji(color) {
+  const map = {'#A0784A':'🍞','#1A3A1A':'🥩','#B84A1C':'📕','#4A6FA5':'📘','#6B4FA0':'📓','#C45C8A':'📓','#2C5F3A':'🌿'};
+  return map[color] || '📖';
+}
+function toggleExpand(id) {
+  if (state.expandedBooks.has(id)) state.expandedBooks.delete(id);
+  else state.expandedBooks.add(id);
+  render();
+}
+function bindEvents() {
+  // Search input focus preserved by renderSearch2
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadData();
+render();
+</script>
+</body>
+</html>
